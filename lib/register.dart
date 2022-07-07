@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import './api.dart';
+import 'api.dart';
 import 'dart:convert';
 
 class RegisterPage extends StatefulWidget {
@@ -16,7 +16,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _password = TextEditingController();
   final TextEditingController _level = TextEditingController();
 
-  String baseUrl = Api.baseurl+Api.regis;
+  String baseUrl = Api.baseurl + Api.regis;
 
   String msg = "";
 
@@ -32,56 +32,28 @@ class _RegisterPageState extends State<RegisterPage> {
   String valueItem = "user";
 
   insertApi() async {
-    final url_ = Uri.parse(baseUrl);
-    var body = json.encode(
-        {
-          'user_id': _userid.text,
-          'username': _username.text,
-          'password': _password.text
-        }
-    );
-    final res = await http.post(url_,
-        headers: {"Content-Type": "application/json"},
-        body: body);
-
-    final dataJson = jsonDecode(res.body);
-    print(res);
-    _userid.clear();
-    _username.clear();
-    _password.clear();
-    _level.clear();
-
-    if (dataJson['status'] == 1) {
-      print(dataJson['msg']);
-      showDialog(
-          context: context,
-          builder: (c) {
-            return AlertDialog(
-              title: const Text("Notification"),
-              content: Text(dataJson['msg']),
-              actions: <Widget>[
-                FlatButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text("Close"),
-                )
-              ],
-            );
-          });
+    var url_ = Uri.parse(baseUrl);
+    Map<String, String> requestHeaders = {
+      'Content-type': 'application/json',
+      'Accept': 'application/json',
+    };
+    var body = {
+      'user_id': _userid.text,
+      'username': _username.text,
+      'password': _password.text,
+      'level': 'user',
+    };
+    var res =
+        await http.post(url_, headers: requestHeaders, body: json.encode(body));
+    var dataJson = json.decode(res.body);
+    if (res.statusCode == 201) {
+      _userid.clear();
+      _username.clear();
+      _password.clear();
+      _level.clear();
+      print(res.body);
       setState(() {
-        msg = dataJson['msg'];
-      });
-    } else if (dataJson['status'] == 2) {
-      print(dataJson['msg']);
-      Navigator.of(context).pop();
-      setState(() {
-        msg = "";
-      });
-    } else {
-      print(dataJson['msg']);
-      setState(() {
-        msg = dataJson['msg'];
+        msg = "Registration Successful!";
       });
     }
   }
@@ -102,8 +74,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 alignment: Alignment.center,
                 padding: const EdgeInsets.all(10.0),
                 decoration: BoxDecoration(
-                    gradient:
-                    const LinearGradient(colors: [Colors.amber, Colors.pink]),
+                    gradient: const LinearGradient(
+                        colors: [Colors.amber, Colors.pink]),
                     borderRadius: BorderRadius.circular(20.0)),
                 child: TextField(
                   controller: _userid,
@@ -122,8 +94,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 alignment: Alignment.center,
                 padding: const EdgeInsets.all(10.0),
                 decoration: BoxDecoration(
-                    gradient:
-                        const LinearGradient(colors: [Colors.amber, Colors.pink]),
+                    gradient: const LinearGradient(
+                        colors: [Colors.amber, Colors.pink]),
                     borderRadius: BorderRadius.circular(20.0)),
                 child: TextField(
                   controller: _username,
@@ -141,8 +113,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 alignment: Alignment.center,
                 padding: const EdgeInsets.all(10.0),
                 decoration: BoxDecoration(
-                    gradient:
-                        const LinearGradient(colors: [Colors.amber, Colors.pink]),
+                    gradient: const LinearGradient(
+                        colors: [Colors.amber, Colors.pink]),
                     borderRadius: BorderRadius.circular(20.0)),
                 child: TextField(
                   controller: _password,
@@ -155,26 +127,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               ),
               SizedBox(
-                height: 20.0,
-              ),
-              Container(
-                  alignment: Alignment.center,
-                  padding: EdgeInsets.all(10.0),
-                  decoration: BoxDecoration(
-                      gradient:
-                          LinearGradient(colors: [Colors.amber, Colors.pink]),
-                      borderRadius: BorderRadius.circular(20.0)),
-                  child: ListTile(
-                      trailing: DropdownButton(
-                        items: _myitems,
-                        value: valueItem,
-                        onChanged: (e) {
-                          setState(() {
-                            valueItem;
-                          });
-                        },
-                      ))),
-              const SizedBox(
                 height: 20.0,
               ),
               Material(

@@ -1,9 +1,9 @@
 import 'dart:convert';
-import './home.dart';
+import 'home.dart';
 import 'package:flutter/material.dart';
-import './api.dart';
+import 'api.dart';
 import 'package:http/http.dart' as http;
-import './register.dart';
+import 'register.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -19,29 +19,34 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  String apiUrl = Api.baseurl+Api.url;
-  
+  String apiUrl = Api.baseurl + Api.login;
+
   String msgError = "";
+  Map<String, String> requestHeaders = {
+    'Content-type': 'application/json',
+    'Accept': 'application/json',
+  };
 
   getApi(String username, String password) async {
-    final url_ = Uri.parse(apiUrl);
-    var body = json.encode({"username": username, "password": password});
-    final res = await http
-        .post(url_, body: body);
-    final data = jsonDecode(res.body);
-    if (data['level'] == "user") {
-      print(data['msg'] + " dan status : " + data['level']);
-      Navigator.of(context).push(MaterialPageRoute(
-          builder: (c) => HomePage(username: data['username'])));
-      _username.clear();
-      _password.clear();
-      setState(() {
-        msgError = "";
-      });
-    } else {
-      setState(() {
-        msgError = "Wrong username and password";
-      });
+    var body = {
+      'username': username,
+      'password': password,
+    };
+    var response = await http.post(Uri.parse(apiUrl), body: json.encode(body));
+    var dataJson = response.body;
+    if (response.statusCode == 200) {
+      var data = json.decode(dataJson);
+      if (data['status'] == 'success') {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    HomePage(username: data['data']['username'])));
+      } else {
+        setState(() {
+          msgError = data['message'];
+        });
+      }
     }
   }
 
@@ -58,8 +63,8 @@ class _LoginState extends State<Login> {
           actions: <Widget>[
             FlatButton(
               onPressed: () {
-                Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const RegisterPage()));
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => const RegisterPage()));
               },
               child: const Text("Register"),
               splashColor: Colors.amber,
@@ -76,12 +81,13 @@ class _LoginState extends State<Login> {
                   alignment: Alignment.center,
                   padding: const EdgeInsets.all(10.0),
                   decoration: BoxDecoration(
-                      gradient:
-                          const LinearGradient(colors: [Colors.amber, Colors.pink]),
+                      gradient: const LinearGradient(
+                          colors: [Colors.amber, Colors.pink]),
                       borderRadius: BorderRadius.circular(20.0)),
                   child: TextField(
                     controller: _username,
                     decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.person),
                         border: InputBorder.none,
                         labelText: "Username",
                         hintText: "Username"),
@@ -94,14 +100,15 @@ class _LoginState extends State<Login> {
                   alignment: Alignment.center,
                   padding: const EdgeInsets.all(10.0),
                   decoration: BoxDecoration(
-                      gradient:
-                          const LinearGradient(colors: [Colors.amber, Colors.pink]),
+                      gradient: const LinearGradient(
+                          colors: [Colors.amber, Colors.pink]),
                       borderRadius: BorderRadius.circular(20.0)),
                   child: TextField(
                     controller: _password,
                     autofocus: true,
                     obscureText: true,
                     decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.lock),
                         border: InputBorder.none,
                         labelText: "Password",
                         hintText: "Password"),
@@ -125,7 +132,8 @@ class _LoginState extends State<Login> {
                   height: 15.0,
                 ),
                 Center(
-                  child: Text(msgError, style: const TextStyle(color: Colors.red)),
+                  child:
+                      Text(msgError, style: const TextStyle(color: Colors.red)),
                 )
               ],
             ),
