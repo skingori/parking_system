@@ -16,13 +16,16 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String? username = "";
+  late String? username = "";
   List<Parking>? parking;
   String? token = "";
   bool isLoading = false;
   final ApiClient _apiClient = ApiClient();
 
   late ListParkingResponse listParkingResponse;
+
+  final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+  GlobalKey<ScaffoldMessengerState>();
 
 
   Future getListUser() async {
@@ -57,13 +60,9 @@ class _HomePageState extends State<HomePage> {
     final username_ = await AppSharedPreferences.getUserName();
     final token_ = await AppSharedPreferences.getUserToken();
     setState(() {
-      username = username_;
+      username = username_!;
       token = token_!;
-      if (token == null) {
-        Navigator.pushNamed(context, '/login');
-      }else{
-        getListUser();
-      }
+      getListUser();
     });
   }
 
@@ -75,9 +74,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ScaffoldMessenger(
+        key: scaffoldMessengerKey,
+      child: Scaffold(
       appBar: AppBar(
-        title: Text(username!),
+        title: Text(username ?? ""),
         backgroundColor: Colors.green,
       ),
       body: isLoading
@@ -146,7 +147,7 @@ class _HomePageState extends State<HomePage> {
                 color: Colors.green,
               ),
               child: Text(
-                username!,
+                username ?? "",
                 style: const TextStyle(fontSize: 20),
               ),
             ),
@@ -201,6 +202,6 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.green,
         child: const Icon(Icons.logout_rounded),
       ),
-    );
+    ));
   }
 }
