@@ -17,12 +17,14 @@ class Vehicles extends StatefulWidget {
 
 class VehiclesState extends State<Vehicles> {
   bool isLoading = false;
-  late String username = "";
+  late String? username = "";
   late String? token = "";
   List<Vehicle>? vehicle;
   late ListVehicleResponse vehicleResponse;
   final ApiClient _apiClient = ApiClient();
 
+  final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+  GlobalKey<ScaffoldMessengerState>();
 
   Future getListVehicle() async {
     Response response;
@@ -54,7 +56,7 @@ class VehiclesState extends State<Vehicles> {
     setState(() {
       username = username_!;
       token = token_!;
-      if (token == null) {
+      if (token == "") {
         Navigator.of(context).push(MaterialPageRoute(
             builder: (BuildContext context) => const HomePage()));
       }else{
@@ -71,11 +73,13 @@ class VehiclesState extends State<Vehicles> {
   @override
   Widget build(BuildContext context) {
     // Scaffold is a layout for the major Material Components.
-    return Scaffold(
+    return ScaffoldMessenger(
+        key: scaffoldMessengerKey,
+      child: Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.green,
-        title: Text(username),
+        title: Text(username ?? ""),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.home),
@@ -119,7 +123,7 @@ class VehiclesState extends State<Vehicles> {
                   // http.post(url, body:map);
                 });
                 Scaffold.of(context).showSnackBar(const SnackBar(
-                  content: Text("Booked"),
+                  content: Text("Deleted"),
                   backgroundColor: Colors.red,
                 ));
                 debugPrint('Deleted');
@@ -145,6 +149,6 @@ class VehiclesState extends State<Vehicles> {
           // debugPrint('Clicked FloatingActionButton Button');
         },
       ),
-    );
+    ));
   }
 }
