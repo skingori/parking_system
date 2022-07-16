@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:my_parking/models/login_info.dart';
-import 'package:my_parking/models/parking_info.dart';
 import 'package:my_parking/models/user_info.dart';
 import 'package:my_parking/utils/shared_preferences.dart';
+import 'package:my_parking/utils/constants.dart';
 
 class ApiClient {
   final Dio _dio = Dio();
@@ -10,7 +13,7 @@ class ApiClient {
   Future<dynamic> registerUser(Map<String, dynamic>? data) async {
     try {
       Response response =
-          await _dio.post('https://e9fd-62-8-64-205.eu.ngrok.io/registration',
+          await _dio.post('${APIConstants.baseurl}/registration',
               data: data,
               options: Options(headers: {
                 'Content-Type': 'application/json',
@@ -28,11 +31,14 @@ class ApiClient {
     try {
       Response response = await _dio.post(
         '${APIConstants.baseurl}/registration',
+        options: Options(headers: {
+          'Content-Type': 'application/json',
+        }),
         data: userInfo.toJson(),
       );
       retrievedUser = UserInfo.fromJson(response.data);
     } on DioError catch (e) {
-      print('Error creating user: $e');
+      debugPrint('Error creating user: $e');
     }
     return retrievedUser;
   }
@@ -42,54 +48,17 @@ class ApiClient {
     try {
       Response response = await _dio.post(
         '${APIConstants.baseurl}/login',
+        options: Options(headers: {
+          'Content-Type': 'application/json',
+        }),
         data: loginInfo.toJson(),
       );
 
       retrievedLogin = LoginInfo.fromJson(response.data);
     } on DioError catch (e) {
-      print('Error creating user: $e');
+      debugPrint('Error creating user: $e');
     }
     return retrievedLogin;
-  }
-
-  Future<dynamic> getUserProfileData(String accessToken) async {
-    try {
-      Response response = await _dio.get(
-        'https://e9fd-62-8-64-205.eu.ngrok.io/profile',
-      );
-      return response.data;
-    } on DioError catch (e) {
-      return e.response!.data;
-    }
-  }
-
-  Future<dynamic> getParkingData(String accessToken) async {
-    try {
-      Response response = await _dio.get(
-        'https://e9fd-62-8-64-205.eu.ngrok.io/parking',
-        options: Options(headers: {
-          'Authorization': accessToken,
-        }),
-      );
-      return response;
-    } on DioError catch (e) {
-      return e.response;
-    }
-  }
-
-  Future<ParkingInfo?> getParking({required ParkingInfo parkingInfo}) async {
-    ParkingInfo? retrievedUser;
-
-    try {
-      Response response = await _dio.post(
-        'https://e9fd-62-8-64-205.eu.ngrok.io/parking',
-        data: parkingInfo.toJson(),
-      );
-      retrievedUser = ParkingInfo.fromJson(response.data);
-    } on DioError catch (e) {
-      print('Error creating user: $e');
-    }
-    return retrievedUser;
   }
 
   Future<dynamic> updateUserProfile({
@@ -98,7 +67,7 @@ class ApiClient {
   }) async {
     try {
       Response response = await _dio.put(
-        'https://api.loginradius.com/identity/v2/auth/account',
+        '${APIConstants.baseurl}/account',
         data: data,
         options: Options(
           headers: {'Authorization': 'Bearer $accessToken'},
@@ -110,10 +79,44 @@ class ApiClient {
     }
   }
 
+  Future<Response> getParkingData(String accessToken) async {
+    Response responseData;
+    try {
+      responseData = await _dio.get(
+        '${APIConstants.baseurl}/parking',
+        options: Options(headers: {
+          'Content-Type': 'application/json',
+          'Authorization': accessToken,
+        }),
+      );
+    } on DioError catch (e) {
+      debugPrint('Error getting parking list: $e');
+      throw Exception(e.message);
+    }
+    return responseData;
+  }
+
+  Future<Response> getVehicleData(String accessToken) async {
+    Response responseData;
+    try {
+      responseData = await _dio.get(
+        '${APIConstants.baseurl}/vehicles',
+        options: Options(headers: {
+          'Content-Type': 'application/json',
+          'Authorization': accessToken,
+        }),
+      );
+    } on DioError catch (e) {
+      debugPrint('Error getting vehicle list: $e');
+      throw Exception(e.message);
+    }
+    return responseData;
+  }
+
   Future<dynamic> logout(String accessToken) async {
     try {
       Response response = await _dio.get(
-        'https://api.loginradius.com/identity/v2/auth/access_token/InValidate',
+        '${APIConstants.baseurl}/logout',
         options: Options(
           headers: {'Authorization': 'Bearer $accessToken'},
         ),

@@ -1,9 +1,11 @@
-import 'dart:ui';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:my_parking/models/login_info.dart';
 import 'package:my_parking/network/api_client.dart';
 import 'package:my_parking/screens/home.dart';
 import 'package:my_parking/screens/register.dart';
+import 'package:my_parking/utils/shared_preferences.dart';
 import 'package:my_parking/utils/validator.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -32,21 +34,32 @@ class _LoginScreenState extends State<LoginScreen> {
         password: passwordController.text,
       );
 
-      LoginInfo? res = await _apiClient.login(loginInfo: loginInfo);
-
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
-      if (res != null && res.error == null) {
-        final token = res.data!['token'];
-        final username = res.data!['username'];
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) =>
-                    HomePage(token: token, username: username)));
-      } else {
+      try {
+        LoginInfo? res = await _apiClient.login(loginInfo: loginInfo);
+        if (res != null && res.error == "None") {
+          final token = res.data!['token'];
+          final username = res.data!['username'];
+          setState(() {
+            AppSharedPreferences.setUserLoggedIn(true);
+            AppSharedPreferences.setUserName(username);
+            AppSharedPreferences.setUserToken(token);
+            // Navigate to home
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomePage(),
+              ),
+            );
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: const Text('Check your internet connection'),
+            backgroundColor: Colors.red.shade300,
+          ));
+        }
+      } on Exception catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('${res?.error}'),
+          content: const Text('Check your internet connection'),
           backgroundColor: Colors.red.shade300,
         ));
       }

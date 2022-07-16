@@ -1,63 +1,142 @@
-import 'dart:convert';
-
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:my_parking/models/parking_info.dart';
+import 'package:my_parking/models/list_parking_response.dart';
+import 'package:my_parking/models/parking.dart';
 import 'package:my_parking/network/api_client.dart';
+import 'package:my_parking/screens/widgets/vehicles.dart';
+import 'package:my_parking/utils/shared_preferences.dart';
+
+import 'login.dart';
 
 class HomePage extends StatefulWidget {
-  final String username;
-  final String token;
-
-  const HomePage({Key? key, required this.username, required this.token})
-      : super(key: key);
+  const HomePage({Key? key}) : super(key: key);
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
+  String? username = "";
+  List<Parking>? parking;
+  String? token = "";
+  bool isLoading = false;
   final ApiClient _apiClient = ApiClient();
 
-  Future<dynamic> getParkingInfo() async {
-    final res = await _apiClient.getParkingData(widget.token);
-    if (res != null && res.error == null) {
-      final List<ParkingInfo> parkingInfo = res.data!
-          .map<ParkingInfo>((json) => ParkingInfo.fromJson(json))
-          .toList();
-      return parkingInfo;
-    } else {
-      return null;
+  late ListParkingResponse listParkingResponse;
+
+
+  Future getListUser() async {
+    Response response;
+    try {
+      isLoading = true;
+
+      response = await _apiClient.getParkingData(token!);
+
+      isLoading = false;
+
+      if (response.statusCode == 200 && response.data != null) {
+        setState(() {
+          listParkingResponse = ListParkingResponse.fromJson(response.data);
+          parking = listParkingResponse.parking;
+        });
+      } else {
+        parking = [];
+        if (kDebugMode) {
+          print("There is some problem status code not 200");
+        }
+      }
+    } on Exception catch (e) {
+      isLoading = false;
+      if (kDebugMode) {
+        print(e);
+      }
     }
+  }
+
+  Future<void> initUserProfile() async {
+    final username_ = await AppSharedPreferences.getUserName();
+    final token_ = await AppSharedPreferences.getUserToken();
+    setState(() {
+      username = username_;
+      token = token_!;
+      if (token == null) {
+        Navigator.pushNamed(context, '/login');
+      }else{
+        getListUser();
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initUserProfile();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.username),
+        title: Text(username!),
         backgroundColor: Colors.green,
       ),
-      body: Center(
-          child: FutureBuilder<dynamic>(
-              future: getParkingInfo(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return ListView.builder(
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) {
-                      final ParkingInfo parkingInfo = snapshot.data![index];
-                      return ListTile(
-                        title: Text(parkingInfo.id.toString()),
-                        subtitle: Text(parkingInfo.code.toString()),
-                        trailing: Text(parkingInfo.adress.toString()),
-                      );
-                    },
-                  );
-                } else if (snapshot.hasError) {
-                  return Text("${snapshot.error}");
-                } else {
-                  return CircularProgressIndicator();
-                }
-              })),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : parking != null
+          ? ListView.builder(
+        itemBuilder: (context, index) {
+          final park = parking![index];
+          return ListTile(
+            leading: GestureDetector(
+              child: const Icon(Icons.directions_car),
+              onLongPress: (){
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const Vehicles(),
+                  ),
+                );
+                debugPrint("get the student units");
+              },
+              onTap: () {
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(
+                //     builder: (context) => AddEditPageStudents(
+                //       list: list,
+                //       index: index,
+                //     ),
+                //   ),
+                // );
+                // debugPrint('Edit Clicked');
+              },
+            ),
+            title: Text(park.parkingId.toString()),
+            subtitle: Text(park.parkingAddress.toString()),
+            trailing: GestureDetector(
+              child: const Icon(Icons.add_location_alt_outlined),
+              onTap: () {
+                setState(() {
+                  var map = <String, dynamic>{};
+                  // map['action'] = APIConstants.STUDENT_DELETE;
+                  // map['id'] = list[index]['Student_ID'];
+                  // var url = APIConstants.STUDENT_ROOT;
+                  // http.post(url, body:map);
+                });
+                Scaffold.of(context).showSnackBar(const SnackBar(
+                  content: Text("Booked"),
+                  backgroundColor: Colors.blue,
+                ));
+                debugPrint('Booked Clicked');
+              },
+            ),
+          );
+        },
+        itemCount: parking?.length,
+      )
+          : const Center(
+        child: Text("No User Object"),
+      ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -67,47 +146,60 @@ class _HomePageState extends State<HomePage> {
                 color: Colors.green,
               ),
               child: Text(
-                'Hello ${widget.username}',
-                style: TextStyle(fontSize: 20),
+                username!,
+                style: const TextStyle(fontSize: 20),
               ),
             ),
             ListTile(
-              leading: Icon(Icons.person),
+              leading: const Icon(Icons.person),
               title: const Text('Profile'),
               onTap: () {
                 Navigator.pop(context);
               },
             ),
             ListTile(
-              leading: Icon(Icons.book),
+              leading: const Icon(Icons.book),
               title: const Text('Reservations'),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (BuildContext context) => const Vehicles()));
               },
             ),
             ListTile(
-              leading: Icon(Icons.workspace_premium),
+              leading: const Icon(Icons.workspace_premium),
               title: const Text('Vehicle'),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (BuildContext context) => const Vehicles()));
               },
             ),
             ListTile(
-              leading: Icon(Icons.handshake),
+              leading: const Icon(Icons.handshake),
               title: const Text('Payments'),
               onTap: () {
                 Navigator.pop(context);
               },
             ),
             ListTile(
-              leading: Icon(Icons.logout),
-              title: const Text('LogOut'),
+              leading: const Icon(Icons.logout),
+              title: const Text('Logout'),
               onTap: () {
-                Navigator.pop(context);
+                AppSharedPreferences.clear();
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (BuildContext context) => const LoginScreen()));
               },
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          AppSharedPreferences.clear();
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (BuildContext context) => const LoginScreen()));
+        },
+        backgroundColor: Colors.green,
+        child: const Icon(Icons.logout_rounded),
       ),
     );
   }

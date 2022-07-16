@@ -38,7 +38,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
-      if (res != null && res.error == null) {
+      if (res != null && res.error == "None") {
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => const LoginScreen()));
       } else {
