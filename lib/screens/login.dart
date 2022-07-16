@@ -53,13 +53,13 @@ class _LoginScreenState extends State<LoginScreen> {
           });
         } else {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: const Text('Check your internet connection'),
+            content: Text('${res?.error}'),
             backgroundColor: Colors.red.shade300,
           ));
         }
       } on Exception catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text('Check your internet connection'),
+          content: Text('$e'),
           backgroundColor: Colors.red.shade300,
         ));
       }
