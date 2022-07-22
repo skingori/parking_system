@@ -4,7 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:my_parking/models/login_info.dart';
 import 'package:my_parking/models/user_info.dart';
-import 'package:my_parking/utils/shared_preferences.dart';
 import 'package:my_parking/utils/constants.dart';
 
 class ApiClient {
@@ -61,22 +60,60 @@ class ApiClient {
     return retrievedLogin;
   }
 
+  Future<dynamic> addVehicle(String accessToken, Map<String, dynamic> data,
+  ) async {
+    Response responseData;
+    try {
+      responseData = await _dio.post(
+        '${APIConstants.baseurl}/vehicle',
+        data: data,
+        options: Options(
+          headers: {'Authorization': accessToken},
+        ),
+      );
+      print(responseData.data);
+    } on DioError catch (e) {
+      debugPrint('Error updating user: $e');
+      throw Exception(e.message);
+    }
+    return responseData;
+  }
+
+  Future<dynamic> updateVehicle(String accessToken, Map<String, dynamic> data) async {
+    Response responseData;
+    try {
+      responseData = await _dio.patch(
+        '${APIConstants.baseurl}/vehicle/edit',
+        data: data,
+        options: Options(
+          headers: {'Authorization': accessToken},
+        ),
+      );
+    } on DioError catch (e) {
+      debugPrint('Error updating user: $e');
+      throw Exception(e.message);
+    }
+    return responseData;
+  }
+
   Future<dynamic> updateUserProfile({
     required String accessToken,
     required Map<String, dynamic> data,
   }) async {
+    Response responseData;
     try {
-      Response response = await _dio.put(
+      responseData = await _dio.put(
         '${APIConstants.baseurl}/account',
         data: data,
         options: Options(
           headers: {'Authorization': 'Bearer $accessToken'},
         ),
       );
-      return response.data;
     } on DioError catch (e) {
-      return e.response!.data;
+      debugPrint('Error updating user: $e');
+      throw Exception(e.message);
     }
+    return responseData;
   }
 
   Future<Response> getParkingData(String accessToken) async {

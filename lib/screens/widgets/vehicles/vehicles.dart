@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +5,7 @@ import 'package:my_parking/models/list_vehicle_response.dart';
 import 'package:my_parking/models/vehicle.dart';
 import 'package:my_parking/network/api_client.dart';
 import 'package:my_parking/screens/home.dart';
-import 'package:my_parking/screens/login.dart';
+import 'package:my_parking/screens/widgets/vehicles/addEdit.dart';
 import 'package:my_parking/utils/shared_preferences.dart';
 
 class Vehicles extends StatefulWidget {
@@ -43,7 +42,6 @@ class VehiclesState extends State<Vehicles> {
         }
       }
     } on Exception catch (e) {
-      isLoading = false;
       if (kDebugMode) {
         print(e);
       }
@@ -56,7 +54,7 @@ class VehiclesState extends State<Vehicles> {
     setState(() {
       username = username_!;
       token = token_!;
-      if (token == "") {
+      if (token == "" || token == null) {
         Navigator.of(context).push(MaterialPageRoute(
             builder: (BuildContext context) => const HomePage()));
       }else{
@@ -82,7 +80,7 @@ class VehiclesState extends State<Vehicles> {
         title: Text(username ?? ""),
         actions: <Widget>[
           IconButton(
-            icon: const Icon(Icons.home),
+            icon: const Icon(Icons.arrow_back_ios_sharp),
             onPressed: () {
               Navigator.of(context).push(MaterialPageRoute(
                   builder: (BuildContext context) => const HomePage()));
@@ -95,22 +93,28 @@ class VehiclesState extends State<Vehicles> {
           ? const Center(child: CircularProgressIndicator())
           : vehicle != null
           ? ListView.builder(
+        padding: const EdgeInsets.all(8),
         itemBuilder: (context, index) {
           final vehicle_ = vehicle![index];
           return ListTile(
             leading: GestureDetector(
               child: const Icon(Icons.edit),
-              onLongPress: (){
+              onTap: (){
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const Vehicles(),
+                    builder: (context) => AddEditVehicle(
+                      list: vehicle,
+                      index: index,
+                      token: token ?? "",
+                    ),
                   ),
                 );
                 debugPrint("Vehicles not available");
               },
             ),
             title: Text(vehicle_.vehicleCategoryName),
+            iconColor: Colors.red,
             subtitle: Text(vehicle_.vehicleCategoryDesc),
             trailing: GestureDetector(
               child: const Icon(Icons.auto_delete),
@@ -140,13 +144,13 @@ class VehiclesState extends State<Vehicles> {
         tooltip: 'Add', // used by assistive technologies
         child: const Icon(Icons.add),
         onPressed: () {
-          // Navigator.push(
-          //   context,
-          //   MaterialPageRoute(
-          //     builder: (context) => AddEditPageStudents(),
-          //   ),
-          // );
-          // debugPrint('Clicked FloatingActionButton Button');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AddEditVehicle(token: token ?? ""),
+            ),
+          );
+          debugPrint('Clicked FloatingActionButton Button');
         },
       ),
     ));

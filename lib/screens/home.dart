@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:my_parking/models/list_parking_response.dart';
 import 'package:my_parking/models/parking.dart';
 import 'package:my_parking/network/api_client.dart';
-import 'package:my_parking/screens/widgets/vehicles.dart';
+import 'package:my_parking/screens/widgets/vehicles/vehicles.dart';
 import 'package:my_parking/utils/shared_preferences.dart';
 
 import 'login.dart';
@@ -18,7 +18,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late String? username = "";
   List<Parking>? parking;
-  String? token = "";
   bool isLoading = false;
   final ApiClient _apiClient = ApiClient();
 
@@ -27,13 +26,32 @@ class _HomePageState extends State<HomePage> {
   final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
   GlobalKey<ScaffoldMessengerState>();
 
+  Future<void> initUserProfile() async {
+    final username_ = await AppSharedPreferences.getUserName() ?? "";
+    final token_ = await AppSharedPreferences.getUserToken();
+    setState(() {
+      if (token_ != null && token_ != "") {
+        username = username_;
+        getListUser(token_);
+      } else {
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (BuildContext context) => const LoginScreen()));
+      }
+    });
+  }
 
-  Future getListUser() async {
+  @override
+  void initState() {
+    super.initState();
+    initUserProfile();
+  }
+
+  Future getListUser(String token) async {
     Response response;
     try {
       isLoading = true;
 
-      response = await _apiClient.getParkingData(token!);
+      response = await _apiClient.getParkingData(token);
 
       isLoading = false;
 
@@ -43,7 +61,6 @@ class _HomePageState extends State<HomePage> {
           parking = listParkingResponse.parking;
         });
       } else {
-        parking = [];
         if (kDebugMode) {
           print("There is some problem status code not 200");
         }
@@ -54,22 +71,6 @@ class _HomePageState extends State<HomePage> {
         print(e);
       }
     }
-  }
-
-  Future<void> initUserProfile() async {
-    final username_ = await AppSharedPreferences.getUserName();
-    final token_ = await AppSharedPreferences.getUserToken();
-    setState(() {
-      username = username_!;
-      token = token_!;
-      getListUser();
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    initUserProfile();
   }
 
   @override
@@ -97,23 +98,12 @@ class _HomePageState extends State<HomePage> {
                     builder: (context) => const Vehicles(),
                   ),
                 );
-                debugPrint("get the student units");
-              },
-              onTap: () {
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(
-                //     builder: (context) => AddEditPageStudents(
-                //       list: list,
-                //       index: index,
-                //     ),
-                //   ),
-                // );
-                // debugPrint('Edit Clicked');
+                debugPrint("long press");
               },
             ),
             title: Text(park.parkingId.toString()),
             subtitle: Text(park.parkingAddress.toString()),
+            iconColor: Colors.blue,
             trailing: GestureDetector(
               child: const Icon(Icons.add_location_alt_outlined),
               onTap: () {
@@ -199,7 +189,7 @@ class _HomePageState extends State<HomePage> {
           Navigator.of(context).push(MaterialPageRoute(
               builder: (BuildContext context) => const LoginScreen()));
         },
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.red,
         child: const Icon(Icons.logout_rounded),
       ),
     ));

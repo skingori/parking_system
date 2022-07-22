@@ -71,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
     var size = MediaQuery.of(context).size;
     return Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.red,
+          backgroundColor: Colors.green,
           elevation: 0.5,
           actions: <Widget>[
             TextButton(
@@ -80,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     builder: (context) => const RegisterScreen()));
               },
               style: TextButton.styleFrom(
-                  backgroundColor: Colors.red, primary: Colors.white),
+                  backgroundColor: Colors.green, primary: Colors.white),
               child: const Text("Register"),
             )
           ],

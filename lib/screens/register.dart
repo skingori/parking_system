@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:my_parking/models/user_info.dart';
 import 'package:my_parking/network/api_client.dart';
@@ -55,7 +54,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     var size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.red,
+        backgroundColor: Colors.green,
         elevation: 0.5,
         actions: <Widget>[
           TextButton(
@@ -64,7 +63,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   MaterialPageRoute(builder: (context) => const LoginScreen()));
             },
             style: TextButton.styleFrom(
-                backgroundColor: Colors.red, primary: Colors.white),
+                backgroundColor: Colors.green, primary: Colors.white),
             child: const Text("Login"),
           )
         ],
