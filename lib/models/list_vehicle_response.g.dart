@@ -11,8 +11,8 @@ ListVehicleResponse _$ListVehicleResponseFromJson(Map<String, dynamic> json) =>
       error: json['error'] as String?,
       message: json['message'] as String,
       status: json['status'] as bool?,
-      vehicle: (json['data'] as List<dynamic>)
-          .map((e) => Vehicle.fromJson(e as Map<String, dynamic>))
+      vehicle: (json['data'] as List<dynamic>?)
+          ?.map((e) => Vehicle.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 

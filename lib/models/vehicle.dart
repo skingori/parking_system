@@ -3,7 +3,6 @@ import 'package:json_annotation/json_annotation.dart';
 part 'vehicle.g.dart';
 
 @JsonSerializable()
-
 class Vehicle {
   @JsonKey(name: "Vehicle_category_id")
   int vehicleCategoryId;
@@ -20,6 +19,7 @@ class Vehicle {
     required this.vehicleCategoryDesc,
     required this.vehicleCategoryDailyParkingFee,
   });
-  factory Vehicle.fromJson(Map<String, dynamic> json) => _$VehicleFromJson(json);
+  factory Vehicle.fromJson(Map<String, dynamic> json) =>
+      _$VehicleFromJson(json);
   Map<String, dynamic> toJson() => _$VehicleToJson(this);
 }

@@ -5,16 +5,17 @@ import 'package:my_parking/models/list_vehicle_response.dart';
 import 'package:my_parking/models/vehicle.dart';
 import 'package:my_parking/network/api_client.dart';
 import 'package:my_parking/screens/home.dart';
-import 'package:my_parking/screens/widgets/vehicles/addEdit.dart';
+import 'package:my_parking/screens/widgets/reservation/reservation.dart';
 import 'package:my_parking/utils/shared_preferences.dart';
 
-class Vehicles extends StatefulWidget {
-  const Vehicles({Key? key}) : super(key: key);
+class VehiclesList extends StatefulWidget {
+  final String parking;
+  const VehiclesList(this.parking, {Key? key}) : super(key: key);
   @override
-  VehiclesState createState() => VehiclesState();
+  VehiclesListState createState() => VehiclesListState();
 }
 
-class VehiclesState extends State<Vehicles> {
+class VehiclesListState extends State<VehiclesList> {
   bool isLoading = false;
   late String? username = "";
   late String? token = "";
@@ -48,37 +49,6 @@ class VehiclesState extends State<Vehicles> {
     }
   }
 
-  Future<void> initiateDelete(Map data) async {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text("Delete Vehicle"),
-            content:
-                const Text("Are you sure you want to delete this vehicle?"),
-            actions: <Widget>[
-              TextButton(
-                child: const Text("Cancel"),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: const Text("Delete"),
-                onPressed: () async {
-                  await _apiClient.deleteVehicle(
-                      token: token ?? "", data: data);
-                  setState(() {
-                    Navigator.of(context).pop();
-                    getListVehicle();
-                  });
-                },
-              ),
-            ],
-          );
-        });
-  }
-
   Future<void> initUserProfile() async {
     final username_ = await AppSharedPreferences.getUserName();
     final token_ = await AppSharedPreferences.getUserToken();
@@ -110,7 +80,7 @@ class VehiclesState extends State<Vehicles> {
             automaticallyImplyLeading: false,
             backgroundColor: Colors.green,
             title: const Text(
-              "Available vehicles",
+              "Select booking vehicle",
               style: TextStyle(color: Colors.white),
             ),
             actions: <Widget>[
@@ -133,32 +103,49 @@ class VehiclesState extends State<Vehicles> {
                         final vehicle_ = vehicle![index];
                         return ListTile(
                           leading: GestureDetector(
-                            child: const Icon(Icons.edit),
+                            child: const Icon(Icons.directions_car),
                             onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => AddEditVehicle(
-                                    list: vehicle,
-                                    index: index,
-                                    token: token ?? "",
-                                  ),
-                                ),
-                              );
-                              debugPrint("Vehicles not available");
+                              //   Navigator.of(context).push(MaterialPageRoute(
+                              //       builder: (BuildContext context) => AddEdit(
+                              //             vehicle: vehicle_,
+                              //             isEdit: true,
+                              //           )));
+                              // },
                             },
                           ),
                           title: Text(vehicle_.vehicleCategoryName),
-                          iconColor: Colors.red,
-                          subtitle: Text(vehicle_.vehicleCategoryDesc),
+                          iconColor: Colors.green,
+                          subtitle: Text(
+                              "Charges from : KES ${vehicle_.vehicleCategoryDailyParkingFee} per hour"),
                           trailing: GestureDetector(
-                            child: const Icon(Icons.auto_delete),
+                            child: const Icon(Icons.check_box),
                             onTap: () {
-                              setState(() {
-                                var map = <String, dynamic>{};
-                                map['vehicle_id'] = vehicle_.vehicleCategoryId;
-                                initiateDelete(map);
-                              });
+                              // setState(() {
+                              //   // var map = <String, dynamic>{};
+                              //   // map['action'] = APIConstants.STUDENT_DELETE;
+                              //   // map['id'] = list[index]['Student_ID'];
+                              //   // var url = APIConstants.STUDENT_ROOT;
+                              //   // http.post(url, body:map);
+                              //   // self.Parking_slot_reservation_duration = duration on new widget
+                              //   // self.Parking_slot_reservation_vehicle_category_id = category on vehicles list
+                              //   // self.Parking_slot_reservation_Parking_lot_id = lot on home page => Done
+                              //   // self.Parking_slot_reservation_driver_id = driver on login
+                              //   // self.Parking_slot_reservation_booking_date = date on new widget
+                              //   // self.Parking_slot_reservation_vehicle_reg_no = reg on new widget
+                              // });
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ReservationPage(
+                                    parkingId: widget.parking,
+                                    token: token ?? "",
+                                    vehicleId:
+                                        vehicle_.vehicleCategoryId.toString(),
+                                  ),
+                                ),
+                              );
+                              debugPrint(
+                                  'Accepted ${vehicle_.vehicleCategoryName}');
                             },
                           ),
                         );
@@ -169,17 +156,18 @@ class VehiclesState extends State<Vehicles> {
                       child: Text("No Data"),
                     ),
           floatingActionButton: FloatingActionButton(
-            tooltip: 'Add', // used by assistive technologies
-            child: const Icon(Icons.add),
+            tooltip: 'Home',
+            focusColor: Colors.green,
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => AddEditVehicle(token: token ?? ""),
+                  builder: (context) => const HomePage(),
                 ),
               );
               debugPrint('Clicked FloatingActionButton Button');
-            },
+            }, // used by assistive technologies
+            child: const Icon(Icons.home),
           ),
         ));
   }

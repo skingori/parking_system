@@ -12,7 +12,7 @@ class ListVehicleResponse {
   @JsonKey(name: "status")
   bool? status;
   @JsonKey(name: "data")
-  List<Vehicle> vehicle;
+  List<Vehicle>? vehicle;
   ListVehicleResponse(
       {this.error, required this.message, this.status, required this.vehicle});
   factory ListVehicleResponse.fromJson(Map<String, dynamic> json) =>

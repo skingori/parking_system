@@ -4,7 +4,6 @@ import 'package:my_parking/models/parking.dart';
 part 'list_parking_response.g.dart';
 
 @JsonSerializable()
-
 class ListParkingResponse {
   @JsonKey(name: "error")
   String? error;
@@ -13,7 +12,7 @@ class ListParkingResponse {
   @JsonKey(name: "status")
   bool? status;
   @JsonKey(name: "data")
-  List<Parking> parking;
+  List<Parking>? parking;
   ListParkingResponse(
       {this.error, required this.message, this.status, required this.parking});
   factory ListParkingResponse.fromJson(Map<String, dynamic> json) =>

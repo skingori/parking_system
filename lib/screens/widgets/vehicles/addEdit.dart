@@ -1,3 +1,4 @@
+// ignore_for_file: file_names
 import 'package:flutter/material.dart';
 import 'package:my_parking/network/api_client.dart';
 import 'package:my_parking/screens/widgets/vehicles/vehicles.dart';
@@ -6,7 +7,8 @@ class AddEditVehicle extends StatefulWidget {
   final List? list;
   final int? index;
   final String token;
-  const AddEditVehicle({Key? key, this.list, this.index, required this.token}) : super(key: key);
+  const AddEditVehicle({Key? key, this.list, this.index, required this.token})
+      : super(key: key);
   @override
   State<StatefulWidget> createState() => AddEditVehicleState();
 }
@@ -25,9 +27,9 @@ class AddEditVehicleState extends State<AddEditVehicle> {
 
   addUpdateData() async {
     var map = <String, dynamic>{};
-    final vehicle = widget.list![widget.index!];
     if (editMode) {
-      map["vehicle_id"] = vehicle.vehicleCategoryId?.toString() ?? "";
+      map["vehicle_id"] =
+          widget.list![widget.index!].vehicleCategoryId?.toString() ?? "";
       map["vehicle_category"] = vehicleCategory.text;
       map["vehicle_description"] = vehicleDescription.text;
       map["vehicle_fee"] = vehicleFee.text;
@@ -49,17 +51,15 @@ class AddEditVehicleState extends State<AddEditVehicle> {
 
   @override
   void initState() {
-    super.initState();
     if (widget.index != null && widget.list != null) {
       setEditMode(true);
       final vehicle = widget.list![widget.index!];
       vehicleId.text = vehicle.vehicleCategoryId?.toString() ?? "";
       vehicleCategory.text = vehicle.vehicleCategoryName ?? "";
-      vehicleDescription.text =
-          vehicle.vehicleCategoryDesc ?? "";
-      vehicleFee.text = vehicle.vehicleCategoryDailyParkingFee ??
-          "";
+      vehicleDescription.text = vehicle.vehicleCategoryDesc ?? "";
+      vehicleFee.text = vehicle.vehicleCategoryDailyParkingFee ?? "";
     }
+    super.initState();
   }
 
   @override
@@ -132,13 +132,13 @@ class AddEditVehicleState extends State<AddEditVehicle> {
                 onPressed: () {
                   setState(() {
                     addUpdateData();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const Vehicles(),
+                      ),
+                    );
                   });
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const Vehicles(),
-                    ),
-                  );
                   debugPrint('Clicked RaisedButton Button');
                 },
                 // color: Colors.redAccent,
@@ -146,10 +146,9 @@ class AddEditVehicleState extends State<AddEditVehicle> {
                 //     borderRadius: BorderRadius.circular(80.0)),
                 child: Text(
                   editMode ? 'Update' : 'Save',
-                  style:const TextStyle(color: Colors.white),
+                  style: const TextStyle(color: Colors.white),
                 ),
               ),
-
             ),
           ],
         ),
@@ -157,5 +156,3 @@ class AddEditVehicleState extends State<AddEditVehicle> {
     );
   }
 }
-
-

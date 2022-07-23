@@ -7,6 +7,10 @@ import 'package:my_parking/models/user_info.dart';
 import 'package:my_parking/utils/constants.dart';
 
 class ApiClient {
+  BaseOptions options = BaseOptions(
+    connectTimeout: 5000,
+    receiveTimeout: 9000,
+  );
   final Dio _dio = Dio();
 
   Future<dynamic> registerUser(Map<String, dynamic>? data) async {
@@ -60,7 +64,9 @@ class ApiClient {
     return retrievedLogin;
   }
 
-  Future<dynamic> addVehicle(String accessToken, Map<String, dynamic> data,
+  Future<dynamic> addVehicle(
+    String accessToken,
+    Map<String, dynamic> data,
   ) async {
     Response responseData;
     try {
@@ -79,7 +85,8 @@ class ApiClient {
     return responseData;
   }
 
-  Future<dynamic> updateVehicle(String accessToken, Map<String, dynamic> data) async {
+  Future<dynamic> updateVehicle(
+      String accessToken, Map<String, dynamic> data) async {
     Response responseData;
     try {
       responseData = await _dio.patch(
@@ -150,6 +157,25 @@ class ApiClient {
     return responseData;
   }
 
+  Future<Response> deleteVehicle(
+      {required Map data, required String token}) async {
+    Response responseData;
+    try {
+      responseData = await _dio.delete(
+        '${APIConstants.baseurl}/vehicle/del',
+        data: data,
+        options: Options(headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token,
+        }),
+      );
+    } on DioError catch (e) {
+      debugPrint('Error deleting user: $e');
+      throw Exception(e.message);
+    }
+    return responseData;
+  }
+
   Future<dynamic> logout(String accessToken) async {
     try {
       Response response = await _dio.get(
@@ -160,7 +186,8 @@ class ApiClient {
       );
       return response.data;
     } on DioError catch (e) {
-      return e.response!.data;
+      debugPrint('Error logging out: $e');
+      throw Exception(e.message);
     }
   }
 }

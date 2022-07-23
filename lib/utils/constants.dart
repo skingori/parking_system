@@ -1,6 +1,6 @@
 class APIConstants {
   static const String appName = "Parking System";
-  static const String baseurl = "https://ea2a-41-90-180-121.eu.ngrok.io";
+  static const String baseurl = "https://c5f8-52-210-28-243.eu.ngrok.io";
 }
 
 class SharedPreferenceKeys {

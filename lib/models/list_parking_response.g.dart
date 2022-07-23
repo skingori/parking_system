@@ -11,8 +11,8 @@ ListParkingResponse _$ListParkingResponseFromJson(Map<String, dynamic> json) =>
       error: json['error'] as String?,
       message: json['message'] as String,
       status: json['status'] as bool?,
-      parking: (json['data'] as List<dynamic>)
-          .map((e) => Parking.fromJson(e as Map<String, dynamic>))
+      parking: (json['data'] as List<dynamic>?)
+          ?.map((e) => Parking.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
