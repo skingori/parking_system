@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:my_parking/network/api_client.dart';
 import 'package:intl/intl.dart';
+import 'package:my_parking/screens/home.dart';
 
 class ReservationPage extends StatefulWidget {
   final String parkingId;
@@ -26,30 +27,56 @@ class ReservationPageState extends State<ReservationPage> {
   TextEditingController bookingDate = TextEditingController();
   TextEditingController bookingTime = TextEditingController();
 
-  Future<void> registerUsers() async {
-    if (_formKey.currentState!.validate()) {
+  Future<void> makeReservation() async {
+    if (vehicleRegNumber.text.isNotEmpty &&
+        parkingId.text.isNotEmpty &&
+        vehicleCategoryID.text.isNotEmpty &&
+        bookingDate.text.isNotEmpty &&
+        bookingTime.text.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: const Text('Processing Data'),
         backgroundColor: Colors.green.shade300,
       ));
+
+      try {
+        final data = {
+          'reservation_parking': parkingId.text,
+          'reservation_vehicle': widget.vehicleId,
+          'reservation__category': vehicleCategoryID.text,
+          'reservation_driver': '45345534',
+          'reservation_date': '${bookingDate.text} ${bookingTime.text}',
+        };
+
+        final res = await _apiClient.makeReservation(widget.token, data);
+        if (res != null && res.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Reservation made successfully'),
+            backgroundColor: Colors.green.shade300,
+          ));
+          // Navigate to home
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HomePage(),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('${res?.error}'),
+            backgroundColor: Colors.red.shade300,
+          ));
+        }
+      } on Exception catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${e.toString()}'),
+          backgroundColor: Colors.red.shade300,
+        ));
+      }
     }
   }
 
   @override
   void initState() {
-    // self.Parking_slot_reservation_duration = duration on new widget
-    //   // self.Parking_slot_reservation_vehicle_category_id = category on vehicles list
-    //   // self.Parking_slot_reservation_Parking_lot_id = lot on home page => Done
-    //   // self.Parking_slot_reservation_driver_id = driver on login
-    //   // self.Parking_slot_reservation_booking_date = date on new widget
-    //   // self.Parking_slot_reservation_vehicle_reg_no = reg on new widget
-    // if (widget.index != null && widget.list != null) {
-    //   final vehicle = widget.list![widget.index!];
-    //   vehicleId.text = vehicle.vehicleCategoryId?.toString() ?? "";
-    //   vehicleCategory.text = vehicle.vehicleCategoryName ?? "";
-    //   vehicleDescription.text = vehicle.vehicleCategoryDesc ?? "";
-    //   vehicleFee.text = vehicle.vehicleCategoryDailyParkingFee ?? "";
-    // }
     if (widget.parkingId != "" &&
         widget.vehicleId != "" &&
         widget.token != "") {
@@ -106,7 +133,7 @@ class ReservationPageState extends State<ReservationPage> {
                     // borderRadius: BorderRadius.circular(25.0),
                     borderSide: BorderSide(),
                   ),
-                  labelText: 'Reistration Number',
+                  labelText: 'Reistration number',
                 ),
               ),
             ),
@@ -119,7 +146,7 @@ class ReservationPageState extends State<ReservationPage> {
                     // borderRadius: BorderRadius.circular(25.0),
                     borderSide: BorderSide(),
                   ),
-                  labelText: 'Select Date',
+                  labelText: '15-12-1990',
                 ),
                 onTap: () async {
                   final DateTime? picked = await showDatePicker(
@@ -131,7 +158,7 @@ class ReservationPageState extends State<ReservationPage> {
                   if (picked != null) {
                     setState(() {
                       bookingDate.text =
-                          DateFormat('yyyy-MM-dd').format(picked);
+                          DateFormat('dd-MM-yyyy').format(picked);
                     });
                   }
                 },
@@ -146,20 +173,25 @@ class ReservationPageState extends State<ReservationPage> {
                     // borderRadius: BorderRadius.circular(25.0),
                     borderSide: BorderSide(),
                   ),
-                  labelText: 'Select Time',
+                  labelText: '7:15:00',
                 ),
                 onTap: () async {
-                  final TimeOfDay? picked = await showTimePicker(
-                    context: context,
+                  TimeOfDay? pickedTime = await showTimePicker(
                     initialTime: TimeOfDay.now(),
+                    context: context,
                   );
-                  if (picked != null) {
+                  if (pickedTime != null) {
+                    //output 10:51 PM
+                    DateTime parsedTime = DateFormat.jm()
+                        .parse(pickedTime.format(context).toString());
+                    String formattedTime =
+                        DateFormat('HH:mm:ss').format(parsedTime);
                     setState(() {
-                      bookingTime.text = picked.format(context);
+                      bookingTime.text = formattedTime;
                     });
                   } else {
                     setState(() {
-                      bookingTime.text = "";
+                      bookingTime.text = '';
                     });
                   }
                 },
@@ -170,13 +202,13 @@ class ReservationPageState extends State<ReservationPage> {
               child: ElevatedButton(
                 onPressed: () {
                   setState(() {
-                    // addUpdateData();
-                    // Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(
-                    //     builder: (context) => const Vehicles(),
-                    //   ),
-                    // );
+                    makeReservation();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HomePage(),
+                      ),
+                    );
                   });
                   debugPrint('Clicked RaisedButton Button');
                 },

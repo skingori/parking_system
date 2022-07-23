@@ -176,6 +176,27 @@ class ApiClient {
     return responseData;
   }
 
+  Future<dynamic> makeReservation(
+    String accessToken,
+    Map<String, dynamic> data,
+  ) async {
+    Response responseData;
+    try {
+      responseData = await _dio.post(
+        '${APIConstants.baseurl}/reservation',
+        data: data,
+        options: Options(
+          headers: {'Authorization': accessToken},
+        ),
+      );
+      print(responseData.data);
+    } on DioError catch (e) {
+      debugPrint('Error updating user: $e');
+      throw Exception(e.message);
+    }
+    return responseData;
+  }
+
   Future<dynamic> logout(String accessToken) async {
     try {
       Response response = await _dio.get(
