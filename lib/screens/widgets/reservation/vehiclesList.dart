@@ -2,9 +2,11 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:my_parking/models/list_vehicle_response.dart';
+import 'package:my_parking/models/token_res.dart';
 import 'package:my_parking/models/vehicle.dart';
 import 'package:my_parking/network/api_client.dart';
 import 'package:my_parking/screens/home.dart';
+import 'package:my_parking/screens/login.dart';
 import 'package:my_parking/screens/widgets/reservation/reservation.dart';
 import 'package:my_parking/utils/shared_preferences.dart';
 
@@ -18,19 +20,19 @@ class VehiclesList extends StatefulWidget {
 class VehiclesListState extends State<VehiclesList> {
   bool isLoading = false;
   late String? username = "";
-  late String? token = "";
   List<Vehicle>? vehicle;
   late ListVehicleResponse vehicleResponse;
   final ApiClient _apiClient = ApiClient();
+  JWTdecode jwtDecode = JWTdecode();
 
   final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
       GlobalKey<ScaffoldMessengerState>();
 
-  Future getListVehicle() async {
+  Future getListVehicle(token) async {
     Response response;
     try {
       isLoading = true;
-      response = await _apiClient.getVehicleData(token!);
+      response = await _apiClient.getVehicleData(token);
       isLoading = false;
       if (response.statusCode == 200) {
         setState(() {
@@ -50,20 +52,29 @@ class VehiclesListState extends State<VehiclesList> {
   }
 
   Future<void> initUserProfile() async {
-    final username_ = await AppSharedPreferences.getUserName();
-    final token_ = await AppSharedPreferences.getUserToken();
+    // final username_ = await AppSharedPreferences.getUserName();
+    bool isLoggedIn = await AppSharedPreferences.isUserLoggedIn();
+    // final token_ = await AppSharedPreferences.getUserToken();
+    final jwtDetails = await jwtDecode.getJWTdecode();
+    JWTdetails cases = JWTdetails.fromJson(jwtDetails);
+    final token_ = cases.token;
+    final status = cases.status;
+    final username_ = cases.username;
+
     setState(() {
-      token = token_!;
-      if (token == "" || token == null) {
-        username = username_ ?? "";
-        Navigator.of(context).push(MaterialPageRoute(
-            builder: (BuildContext context) => const HomePage()));
+      // if user is logged off then navigate to login page
+      if (status == true && isLoggedIn && token_ != null) {
+        username = username_;
+        isLoading = true;
+        getListVehicle(token_);
       } else {
-        getListVehicle();
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (BuildContext context) => const LoginScreen()));
       }
     });
   }
 
+//getListVehicle();
   @override
   void initState() {
     initUserProfile();
@@ -138,7 +149,6 @@ class VehiclesListState extends State<VehiclesList> {
                                 MaterialPageRoute(
                                   builder: (context) => ReservationPage(
                                     parkingId: widget.parking,
-                                    token: token ?? "",
                                     vehicleId:
                                         vehicle_.vehicleCategoryId.toString(),
                                   ),

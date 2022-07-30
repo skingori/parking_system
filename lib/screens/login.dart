@@ -38,10 +38,10 @@ class _LoginScreenState extends State<LoginScreen> {
         LoginInfo? res = await _apiClient.login(loginInfo: loginInfo);
         if (res != null && res.error == "None") {
           final token = res.data!['token'];
-          final username = res.data!['username'];
+          // final username = res.data!['username'];
           setState(() {
             AppSharedPreferences.setUserLoggedIn(true);
-            AppSharedPreferences.setUserName(username);
+            // AppSharedPreferences.setUserName(username);
             AppSharedPreferences.setUserToken(token);
             // Navigate to home
             Navigator.pushReplacement(

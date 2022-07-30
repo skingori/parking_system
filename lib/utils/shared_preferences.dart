@@ -1,10 +1,8 @@
-import 'dart:convert';
-
-import 'package:my_parking/models/login_info.dart';
+import 'package:flutter/foundation.dart';
+import 'package:json_annotation/json_annotation.dart';
+import 'package:jwt_decode/jwt_decode.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'constants.dart';
-
 
 class AppSharedPreferences {
   static Future<SharedPreferences> getInstance() async {
@@ -17,7 +15,6 @@ class AppSharedPreferences {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.clear();
   }
-
 
   static Future<bool> setUserLoggedIn(bool isLoggedIn) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -49,5 +46,20 @@ class AppSharedPreferences {
   static Future<String?> getUserName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString(SharedPreferenceKeys.userLevel);
+  }
+}
+
+class JWTdecode {
+  getJWTdecode() async {
+    String? token = await AppSharedPreferences.getUserToken();
+    Map<String, dynamic> payload = Jwt.parseJwt(token!);
+    bool isExpired = Jwt.isExpired(token);
+    return {
+      "id": payload["Login_id"],
+      "username": payload["username"],
+      "status": !isExpired,
+      "token": token,
+      "exp": payload["exp"],
+    };
   }
 }

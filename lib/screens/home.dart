@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:my_parking/models/list_parking_response.dart';
 import 'package:my_parking/models/parking.dart';
+import 'package:my_parking/models/token_res.dart';
 import 'package:my_parking/network/api_client.dart';
 import 'package:my_parking/screens/widgets/reservation/vehiclesList.dart';
 import 'package:my_parking/screens/widgets/vehicles/vehicles.dart';
@@ -21,18 +24,27 @@ class _HomePageState extends State<HomePage> {
   List<Parking>? parking;
   bool isLoading = false;
   final ApiClient _apiClient = ApiClient();
-
   late ListParkingResponse listParkingResponse;
+  final JWTdecode jwtDecode = JWTdecode();
 
   final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
       GlobalKey<ScaffoldMessengerState>();
 
   Future<void> initUserProfile() async {
-    final username_ = await AppSharedPreferences.getUserName() ?? "";
-    final token_ = await AppSharedPreferences.getUserToken();
+    // final username_ = await AppSharedPreferences.getUserName();
+    bool isLoggedIn = await AppSharedPreferences.isUserLoggedIn();
+    // final token_ = await AppSharedPreferences.getUserToken();
+    final jwtDetails = await jwtDecode.getJWTdecode();
+    JWTdetails cases = JWTdetails.fromJson(jwtDetails);
+    final token_ = cases.token;
+    final status = cases.status;
+    final username_ = cases.username;
+
     setState(() {
-      if (token_ != null && token_ != "") {
+      // if user is logged off then navigate to login page
+      if (status == true && isLoggedIn && token_ != null) {
         username = username_;
+        isLoading = true;
         getListUser(token_);
       } else {
         Navigator.of(context).push(MaterialPageRoute(
@@ -50,12 +62,8 @@ class _HomePageState extends State<HomePage> {
   Future getListUser(String token) async {
     Response response;
     try {
-      isLoading = true;
-
       response = await _apiClient.getParkingData(token);
-
       isLoading = false;
-
       if (response.statusCode == 200 && response.data != null) {
         setState(() {
           listParkingResponse = ListParkingResponse.fromJson(response.data);
